@@ -294,3 +294,145 @@ APE = (|y_actual - y_pred|/y_actual)*100
 
 MAPE = Average(APE)
 
+
+
+## Handling Categorical Variables
+
+Categorical variables can be classified into 2 major types
+
+1) Nominal
+
+2) Ordinal
+
+**Nominal**: Variables or Features that have 2 or more categories which do not have any kind of order associated with them. Example: Gender (M/F)
+
+**Ordinal**: Variables or Features that have levels or categories with a particular order associated with them. Order is important. Example: Size (S/M/L)
+
+A categorical variable with only 2 categories is called as **binary category**
+
+A categorical variable that are present in cycles is called as **cyclic category**. Example: Days in a Week, Hours in a Day
+
+Computers do not understand text data and thus, we need to convert these categories to numbers. 
+
+1) **Label Encoding**
+
+A simple way of doing this would be to create a dictionary that maps these values to numbers starting from 0 to N-1, where N is the **total number of categories** in a given feature
+
+Note: LabelEncoder from scikitlearn does not handle NaN values
+
+Label Encoding can be used in many **tree based models**:
+
+Decision Trees      Random Forest      Extra Trees      Boosted Trees Model (XGBoost    GBM      LightGBM)
+
+Label Encoding cannot be used in Linear models, Support Vector Machines, or Neural Networks as they expect data to be normalized
+
+For such linear models & others, we can **binarize the data**
+
+**Binarizing the data**: This is just converting the categories to numbers and then converting them to their binary representation
+
+It becomes easy to store lots of binarized variables like this if we store them in a **sparse format**
+
+2) **Sparse Format**
+
+A sparse format is nothing but a representation or way of storing data in memory in which you do not store all the values but only the values that matter. In the case of binary variables described above, all that matters is where we have ones (1s).
+
+One way to represent this matrix only with ones would be some kind of dictionary method in which keys are indices of rows and columns and value is 1
+
+A notation like this will occupy much less memory because it has to store only 1s values which will be less than the dense array
+
+The total size of the **sparse csr matrix** is the sum of three values:
+
+sparse_example.data.nbytes + sparse_example.indptr.nbytes + sparse_example.indices.nbytes
+
+We prefer **sparse arrays** over **dense** whenever we have a **lot of zeros in our features**
+
+3) **One Hot Encoding**
+
+Even though the sparse representation of binarized features takes much less memory than its dense representation, there is another transformation for categorical variables that takes even less memory, which is One Hot Encoding.
+
+One hot encoding is a binary encoding too in the sense that there are only two values, 0s and 1s. However, it must be noted that it’s not a binary representation.
+
+When one-hot encoding, the vector size has to be same as the number of categories we are looking at. Each vector has a 1 and rest all other values are 0s.
+
+There are many ways other than the above mentioned three, like converting categorical variables to numerical variables based on count using **groupby** & **transform** in pandas
+
+One more trick is to create new features from these categorical variables. For example like concatinating 2 columns using underscore (cat1_cat2)
+
+Whenever you get a categorical variables, follow these simple steps:
+
+- fill the NaN values
+
+- convert them to integers by applying label encoding using LabelEncoder of scikit-learn or by using a mapping dictionary
+
+- create one-hot encoding. Yes, you can skip binarization!
+
+- go for modelling
+
+**Handle NaN values in categorical features:**
+
+One way is to drop the NaN values if they are very less in number. Another way of handling NaN values is to treat them as a completely new category.
+
+**Rare categories**:
+
+Categories which appear only a small percentage of the total number of samples are called as Rare Categories
+
+Now, let’s assume that you have deployed this model which uses this column in production and when the model or the project is live, you get a category in this column that is not present in train.  You model pipeline, in this case, will throw an error and there is nothing that you can do about it.
+
+If this is expected, then you must modify your model pipeline and include a new category.
+
+This new category is known as the **“rare”** category. A rare category is a category which is not seen very often and can include many different categories.
+
+You can also try to **“predict”** the **unknown category** by using a **nearest neighbour** model.
+
+Remember, if you predict this category, it will become one of the categories from the training data.
+
+Consider a dataset with 5 features, named f1, f2, f3, f4 and f5. Let's say that f3 feature might assume a new value when it’s seen in the test set or live data.
+
+We can build a simple model that’s trained on all features except “f3”. Thus, you will be creating a model that predicts “f3” when it’s not known or not available in training. It might not give great performance but might be able to handle those missing values in test set or live data.
+
+If you have a fixed test set, you can add your test data to training to know about the categories in a given feature. This is very similar to semi-supervised learning in which you use data which is not available for training to improve your model. This will also take care of rare values that appear very less number of times in training data but are in abundance in test data. Your model will be more robust.
+
+The above approach might look like that the model may overfit. If you design your cross-validation in such a way that it replicates the prediction process when you run your model on test data, then it’s never going to overfit.
+
+**Note**: You must design your validation sets in such a way that it has categories which are “unseen” in the training set.
+
+**Unknown category**
+
+We can treat “NONE” as unknown. So, if during live testing, we get new categories that we have not seen before, we will mark them as “NONE”
+
+Common NLP problems: We always build model based on a fixed vocabulary. Transformer models like BERT are trained on ~30K words for English. So when we have a new word coming in we mark it as **UNK** (unknown).
+
+So, you can either assume that your test data will have the same categories as training or you can introduce a **rare or unknown category** to training to take care of new categories in test data. So, now, when it comes to test data, all the new, unseen categories will be mapped to **“RARE”**, and all missing values will be mapped to **“NONE”**.
+
+**Note**: Please note that we do not need to normalize data when we use tree-based models
+
+Some other approaches: We will take all the categorical columns and create all combinations of degree two and can combine them using underscores or other symbols
+
+**Target Encoding**
+
+Have to be very careful as this might overfit your model
+
+It is a technique in which each category of a feature is mapped to a **mean target value**, but this must always be done in cross validated manner.
+
+It means that the first thing you do is create the folds, and then use those folds to create **target encoding features** for different columns of the data in the same way you fit and predict the model on folds
+
+If you have created 5 folds, you have to create target encoding 5 times such that in the end, you have **encoding** for variables in each fold which are not derived from the same fold. And then when you fit your model, you must use the same folds again.
+
+Target encoding for unseen test data can be derived from the **full training data** or can be an **average of all the 5 folds**.
+
+When we use target encoding, it’s better to use some kind of **smoothing or adding noise** in the **encoded values**. Smoothing introduces some kind of regularization that helps with not overfitting the model.
+
+**Entity Embedding** (For NNs):
+
+In entity embeddings, the categories are represented as vectors. We represent categories by vectors in both binarization and one hot encoding approaches.
+
+We can thus represent them by **vectors with float values** instead to avoid huge matrices that will take long time for training.
+
+- You have an embedding layer for each categorical feature.
+
+- Every category in a column can now be mapped to an embedding.
+
+- You then reshape these embeddings to their dimension to make them flat and then concatenate all the flattened inputs embeddings.
+
+- Then add a bunch of dense layers, an output layer and you are done.
+
