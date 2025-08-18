@@ -436,3 +436,72 @@ We can thus represent them by **vectors with float values** instead to avoid hug
 
 - Then add a bunch of dense layers, an output layer and you are done.
 
+
+## Feature Engineering
+
+If we have useful features, the model will perform better
+
+Mainly depends on the domain knowledge and the data available
+
+Feature Engineering = Creating new features + normalization + transformation
+
+**Date & Time Data**:
+
+Features like
+
+Year    Week of Year    Month    Day of Year    Day of Week    Weekend    Hour    Is Leap Year    Quarter    And many more
+
+**Aggregates**: Using aggregates in pandas, it is quite easy to create features like:
+
+- What’s the month a customer is most active in
+
+- What is the count of cat1, cat2, cat3 for a customer
+
+- What is the count of cat1, cat2, cat3 for a customer for a given week of the year
+
+- What is the mean of num1 for a given customer
+
+Sometimes, for example, when dealing with time-series problems, you might have features which are not individual values but a **list of values** like:
+
+Transactions by a customer in a given period of time
+
+**Binning**:
+
+Feature converting of numbers to categories is known as binning.
+
+When you bin, you can use both the bin and the original feature. Binning also enables you to treat numerical features as categorical.
+
+**Log Transformation**
+
+Another feature that you can create from numerical features is log transformation
+
+If you have a feature in the dataset with high variance compared to other features, then we can **reduce the variance** of that feature using log transformation.
+
+Example: we can apply log(1 + x) to this column to reduce its variance
+
+Sometimes, instead of log, you can also take **exponential**
+
+When you use a log-based evaluation metric like **RMSLE**, in that case you can train on **log-transformed targets** and convert back to original using **exponential on the prediction**
+
+**Handling Missing Values for numerical features**:
+
+1) You can fill them with mean, median or mode
+
+2) Can fill it with a value like 0 or something unique that's already not available in that feature
+
+3) A fancy way of filling missing values is to use **K-Nearest Neighbor method**.
+
+You can select a sample with missing values and find the nearest neighbours utilising some kind of distance metric, for example, **Euclidean distance**. Then you can take the mean of all nearest neighbours and fill up the missing value.
+
+You can use the **KNN imputer implementation** for filling missing values like this.
+
+4) Another way of imputing missing values in a column would be to **train a regression model** that tries to predict missing values in a column based on other columns
+
+Start with one column that has a missing value and treat this column as the target column for regression model without the missing values. Using all the other columns, you now train a model on samples for which there is no missing value in the concerned column and then try to predict target (the same column) for the samples that were removed earlier
+
+**Note**:
+
+For **tree-based models**, imputing values are **unnecessary** as they can handle it themselves.
+
+Always remember to **scale or normalize** your features if you are using **linear models** like logistic regression or a model like SVM. **Tree based models** will work fine **without any normalization** of the features.
+
