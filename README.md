@@ -505,3 +505,81 @@ For **tree-based models**, imputing values are **unnecessary** as they can handl
 
 Always remember to **scale or normalize** your features if you are using **linear models** like logistic regression or a model like SVM. **Tree based models** will work fine **without any normalization** of the features.
 
+
+
+## Feature Selection
+
+Having too many features pose a problem well known as the curse of dimensionality
+
+If you have a lot of features, you must also have a lot of training samples to capture all the features
+
+**1) Remove features with very low variance**
+
+It means they are close to being constant and thus, do not add any value to any model at all.
+
+Scikit-learn has an implementation for **VarianceThreshold** that does precisely this
+
+**2) Remove features with high correlation**
+
+For calculating the correlation between different numerical features, you can use the **Pearson correlation**
+
+We can remove one of the highly correlated feature
+
+**3) Univariate ways of feature selection**
+
+Scoring of each feature against a given target
+
+**Mutual information**, **ANOVA F-test** and **chi2** are some of the most popular methods for univariate feature selection
+
+**SelectKBest**: It keeps the top-k scoring features
+
+**SelectPercentile**: It keeps the top features which are in a percentage specified by the user
+
+**Note**: Use chi2 only for data which is **non-negative** in nature. Particularly useful feature selection technique in **NLP** when we have a **bag of words** or **tf-idf** based features
+
+**4) Feature selection using a ML model**
+
+Greedy Feature Selection
+
+Recursive Feature Elimination (RFE)
+
+**Greedy Feature Selection**
+
+Step I: Choose a model
+
+Step II: Select a loss/scoring function
+
+Step III: Iteratively evaluate each feature and add it to the list of good features if it improves loss/score
+
+The computational cost associated with this kind of method is very high.
+
+**Note**: And if you do not use this feature selection properly, then you might even end up **overfitting the model**
+
+**Recursive Feature Elimination (RFE)**
+
+In the previous method, we started with one feature and kept adding new features, but in RFE, we start with all features and **keep removing one feature** in every iteration that provides the least value to a given model
+
+**How do we know which feature offers the least value?**
+
+If we use models like linear SVM or logistic regression, we get a **coefficient** for each feature which decides the **importance of the features**. In case of any tree-based models, we get **feature importance** in place of coefficients.
+
+Remove the feature which has the feature importance or the feature which has a coefficient **close to 0**
+
+Remember that when you use a model like logistic regression for binary classification, the coefficients for features are more positive if they are important for the positive class and more negative if they are important for the negative class
+
+**5) Feature selection using feature importance**
+
+You can fit the model to the data and select features from the model by the feature coefficients or the importance of features. If you use coefficients, you can select a **threshold**, and if the coefficient is above that threshold, you can keep the feature else eliminate it.
+
+You can choose features from one model and use another model to train. For example, you can use Logistic Regression coefficients to select the features and then use Random Forest to train the model on chosen features.
+
+Scikit-learn also offers **SelectFromModel** class that helps you choose features directly from a given model
+
+**6) Feature selection using models that have L1 (Lasso) penalization**
+
+When we have L1 penalization for regularization, most coefficients will be 0 (or close to 0), and we **select the features with non-zero coefficients**
+
+**Note**: All tree-based models provide feature importance
+
+Select features on training data and validate the model on validation data for proper selection of features without overfitting the model
+
