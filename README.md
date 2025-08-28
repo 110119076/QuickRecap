@@ -583,3 +583,110 @@ When we have L1 penalization for regularization, most coefficients will be 0 (or
 
 Select features on training data and validate the model on validation data for proper selection of features without overfitting the model
 
+
+
+
+
+## Hyperparameter Optimization
+
+The parameters that the model has are known as hyper-parameters, i.e. the parameters that control the training/fitting process of the model
+
+If we train a linear regression with SGD, parameters of a model are the slope and the bias and hyperparameter is **learning rate**
+
+**Grid Search**
+
+We specify a grid of parameters. A search over this grid to find the best combination of parameters is known as **grid search**
+
+Example: We can say that n_estimators can be 100, 200, 250, 300, 400, 500; max_depth can be 1, 2, 5, 7, 11, 15 and criterion can be gini or entropy
+
+**Note**: If you have **kfold cross-validation**, you need even more loops which implies even **more time** to find the perfect parameters
+
+We could see our **best k fold accuracy score**, and we could also have the **best parameters** from our grid search
+
+**Random Search**
+
+We randomly select a combination of parameters and calculate the cross-validation score
+
+The time consumed here is less than grid search because we do not evaluate over all different combinations of parameters
+
+We choose how many times we want to evaluate our models, and that’s what decides how much time the search takes
+
+Random search is faster than grid search if the number of iterations is less
+
+**How to optimize for a pipeline?**
+
+Let’s say that we are dealing with a multiclass classification problem. In this problem, the training data consists of two text columns, and you are required to build a model to predict the class.
+
+Let’s assume that the pipeline you choose is to first apply **tf-idf in a semisupervised manner** and then use **SVD with SVM classifier**
+
+We have to select the components of SVD and also need to tune the parameters of SVM in this problem
+
+pipeline.Pipeline(
+
+ [('svd', svd),
+ 
+  ('scl', scl),
+  
+  ('svm', svm_model)]
+  
+)
+
+Can still go for **GridSearch** or **RandomSearch** for pipelines as well
+
+Just set the estimator parameter to the pipeline you want to optimize and provide desired ranges/choice of params
+
+Minimization of functions using different kinds of **minimization algorithms**.
+
+This can be achieved by using many minimization functions such as **Downhill Simplex Algorithm**, **Nelder-Mead optimization**, using a **Bayesian technique with Gaussian process** for finding optimal parameters or by using a **Genetic Algorithm**
+
+**How the Gaussian process can be used for hyper-parameter optimization?**
+
+These kind of algorithms need a function to optimize, like **minimization of the function** like we minimize the loss
+
+So, let’s say, you want to find the best parameters for best accuracy and obviously, the more the accuracy is better. Now we cannot minimize the accuracy, but we can minimize it when we multiply it by -1. This way, we are minimizing the negative of accuracy, but in fact, we are maximizing accuracy
+
+Using **gp_minimize** function from scikit-optimize (skopt) library
+
+Define a **parameter space**, **optimization function** that returns negative accuracy here and use it in gp_minimize
+
+result = gp_minimize(
+
+ optimization_function,
+ 
+ dimensions=param_space,
+ 
+ n_calls=15,
+ 
+ n_random_starts=10,
+ 
+ verbose=10
+ 
+)
+
+We can also see (plot) **how we achieved convergence**
+
+from skopt.plots import plot_convergence
+
+plot_convergence(result)
+
+
+There are many libraries available that offer hyperparameter optimization. **scikit-optimize** is one such library, another useful library is **hyperopt**
+
+hyperopt uses **Tree-structured Parzen Estimator** (**TPE**) to find the most optimal parameters
+
+The ways of tuning hyperparameters described above are the most common, and these will work with almost all models: linear regression, logistic regression, tree-based methods, gradient boosting models such as xgboost, lightgbm, and even neural networks!
+
+**Note**: In gradient boosting, when you **increase the depth**, you should **reduce the learning rate**
+
+**Regularization**
+
+When you create large models or introduce a lot of features, you also make it susceptible to overfitting the training data. To **avoid overfitting**, you need to introduce **noise in training data** features or **penalize the cost function**. This penalization is called regularization and helps with generalizing the model.
+
+In **linear models**, the most common types of regularizations are **L1 and L2**.
+
+**L1** is also known as **Lasso regression** and **L2** as **Ridge regression**
+
+When it comes to **neural networks**, we use **dropouts**, the addition of **augmentations**, **noise**, etc. to regularize our models
+
+**Note**: Using hyper-parameter optimization, you can also **find the correct penalty to use**.
+
