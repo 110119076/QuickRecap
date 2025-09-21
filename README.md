@@ -690,3 +690,135 @@ When it comes to **neural networks**, we use **dropouts**, the addition of **aug
 
 **Note**: Using hyper-parameter optimization, you can also **find the correct penalty to use**.
 
+
+
+**Approaching text classification/regression**
+
+Let’s say we start with a fundamental task of sentiment classification.
+
+One review maps to one target variable. 
+
+The sentiment score is a combination of score from multiple sentences.
+
+A simple way would be just to create two handmade lists of words. One list will contain all the positive words and another list will include all the negative words.
+
+These lists are also known as **sentiment lexicons**.
+
+If the number of positive words is higher, it is a positive sentiment, and if the number of negative words is higher, it is a sentence with a negative sentiment. Else it's a neutral sentiment.
+
+Splitting a string into a list of words is known as **tokenization**
+
+One of the basic models that you should always try with a classification problem in NLP is **bag of words**
+
+**Bag of Words**
+
+We create a huge sparse matrix that stores counts of all the words in our corpus (corpus = all the documents = all the sentences)
+
+**CountVectorizer** from scikit-learn. The way CountVectorizer works is it first tokenizes the sentence and then assigns a value to each token
+
+So, each token is represented by a unique index. These unique indices are the columns that we see. The CountVectorizer stores this information.
+
+Integrate **word_tokenize** from scikit-learn in CountVectorizer for handling special characters.
+
+Use bag of words with Logistic Regression to predict the sentiment of the sentence.
+
+However, Logistic Regression model took a lot of time to train, let’s see if we can improve the time by using **naïve bayes classifier**.
+
+Naïve bayes classifier is quite popular in NLP tasks as the sparse matrices are huge and naïve bayes is a simple model
+
+**TF-IDF**:
+
+**TF** is **term frequencies**, and **IDF** is **inverse document frequency**.
+
+TF(t) = No. of times term t appears in a doc / Total no. of terms in the doc
+
+IDF(t) = Log( Total no. of docs / No. of docs with term t in it)
+
+TF-IDF(t) = TF(t) * IDF(t)
+
+**TfidfVectorizer** from scikit-learn can be used to calculate this.
+
+Scikit-learn also offers TfidfTransformer. If you have count values, you can use TfidfTransformer and get the same behaviour as TfidfVectorizer.
+
+**N-grams**:
+
+N-grams are combinations of words in order. N-grams are easy to create. You just need to take care of the order.
+
+3 grams of the sentence  "hi, how are you?" are as follows:
+
+[('hi', ',', 'how'),
+
+(',', 'how', 'are'),
+
+('how', 'are', 'you'),
+
+('are', 'you', '?')]
+
+Now, these n-grams become a part of our vocab, and when we calculate counts or tf-idf, we consider **one n-gram as one entirely new token**
+
+So, in a way, we are incorporating context to some extent. Both CountVectorizer and TfidfVectorizer implementations of scikit-learn offers ngrams by ngram_range parameter, which has a minimum and maximum limit.
+
+ **Stemming and lemmatization**
+
+They reduce a word to its smallest form. In the case of stemming, the processed word is called the stemmed word, and in the case of lemmatization, it is known as the lemma.
+
+It must be noted that lemmatization is more aggressive than stemming and stemming is more popular and widely used.
+
+Most common **Snowball Stemmer** and **WordNet Lemmatizer**.
+
+words = ["fishing", "fishes", "fished"]
+
+word=fishing, stemmed_word=fish, lemma=fishing
+
+word=fishes, stemmed_word=fish, lemma=fish
+
+word=fished, stemmed_word=fish, lemma=fished
+
+Stemming: When we do stemming, we are given the smallest form of a word which may or may not be a word in the dictionary for the language the word belongs to.
+
+However, in the case of lemmatization, this will be a word.
+
+**Topic Extraction**
+
+Topic extraction can be done using **non-negative matrix factorization (NMF)** or **latent semantic analysis (LSA)**, which is also popularly known as **singular value decomposition** (**SVD**).
+
+These are decomposition techniques that reduce the data to a given number of components.
+
+**What are stopwords?**
+
+These are high-frequency words that exist in every language. For example, in the English language, these words are “a”, “an”, “the”, “for”, etc.
+
+Removing stopwords is not always a wise choice and depends a lot on the business problem. A sentence like “I need a new dog” after removing stopwords will become “need new dog”, so we don’t know who needs a new dog. We lose a lot of context information if we remove stopwords all the time.
+
+To avoid that, use word embeddings.
+
+**Word Embeddings**
+
+You have seen that till now we converted the tokens into numbers. So, if there are N unique tokens in a given corpus, they can be represented by integers ranging from 0 to N-1.
+
+Now we will represent these integer tokens with vectors. This representation of words into vectors is known as **word embeddings** or **word vectors**.
+
+Google’s **Word2Vec** is one of the oldest approaches to convert words into vectors.
+
+We also have **FastText** from Facebook and **GloVe** (Global Vectors for Word Representation) from Stanford.
+
+The basic idea is to build a shallow network that learns the embeddings for words by reconstruction of an input sentence.
+
+So, you can train a network to predict a missing word by using all the words around and during this process, the network will learn and update embeddings for all the words involved. This approach is also known as **Continuous Bag of Words** or **CBoW model**.
+
+You can also try to take one word and predict the context words instead. This is called **skip-gram model**. Word2Vec can learn embedding using these two methods.
+
+**FastText** learns embeddings for **character n-grams** instead. Just like word n-grams, if we use characters, it is known as character n-grams, and finally, **GloVe** learns these embeddings by using **co-occurrence matrices**.
+
+So, we can say that all these different types of embeddings are in the end returning a dictionary where the **key is a word in the corpus** (for example English Wikipedia) and **value is a vector of size N** (usually 300).
+
+We take all the individual word vectors in a given sentence and create a normalized word vector from all word vectors of the tokens. This provides us with a **sentence vector**.
+
+**Transformer** based networks are able to handle dependencies which are long term in nature. LSTM looks at the next word only when it has seen the previous word. This is not the case with transformers.
+
+It can look at all the words in the whole sentence simultaneously. Due to this, one more advantage is that it can easily be parallelized and uses GPUs more efficiently.
+
+Transformers is a very broad topic, and there are too many models: **BERT, RoBERTa, XLNet, XLM-RoBERTa, T5, etc**.
+
+Please note that these transformers are hungry in terms of computational power needed to train them. Thus, if you do not have a high-end system, it might take much longer to train a model compared to LSTM or TF-IDF based models.
+
