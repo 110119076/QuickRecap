@@ -692,7 +692,7 @@ When it comes to **neural networks**, we use **dropouts**, the addition of **aug
 
 
 
-**Approaching text classification/regression**
+## **Approaching text classification/regression**
 
 Let’s say we start with a fundamental task of sentiment classification.
 
