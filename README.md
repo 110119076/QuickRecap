@@ -822,3 +822,97 @@ Transformers is a very broad topic, and there are too many models: **BERT, RoBER
 
 Please note that these transformers are hungry in terms of computational power needed to train them. Thus, if you do not have a high-end system, it might take much longer to train a model compared to LSTM or TF-IDF based models.
 
+
+
+## **Approaching ensembling and stacking**
+
+Smaller models are also easier and faster to tune.
+
+**Ensembling** is nothing but a combination of different models. The models can be combined by their predictions/probabilities. The simplest way to combine models would be just to do an average.
+
+Ensemble Probabilities = (M1_proba + M2_proba + … + Mn_Proba) / n
+
+One thing that you should keep in mind for any method of combining is that you should always combine predictions/probabilities of models which are **different from each other**. In simple words, the combination of models which are **not highly correlated works better** than the combination of models which are very correlated with each other.
+
+If you do not have probabilities, you can combine predictions too. The most simple way of doing this is to take a **vote**.
+
+[0, 0, 1] : Highest voted class: 0
+
+[0, 1, 2] : Highest voted class: None (Choose one randomly)
+
+[2, 2, 2] : Highest voted class: 2
+
+Please note that probas have a single probability (i.e. binary classification, usually class 1) in each column. Each column is thus a new model. Similarly, for preds, each column is a prediction from different models. Both these functions assume a **2-dimensional numpy array**.
+
+Another way of combining multiple models is by **ranks of their probabilities**.
+
+This type of combination works quite good when the concerned metric is the area under curve as **AUC is all about ranking samples**.
+
+If three people are guessing the height of an elephant, the original height will be very close to the **average of the three guesses**. Let’s assume these people can guess very close to the original height of the elephant. Close estimate means an error, but this error can be **minimized when we average** the three predictions. This is the main idea behind the averaging of multiple models.
+
+Probabilities can also be combined by weights.
+
+Final Probabilities = w1*M1_proba + w2*M2_proba + … + wn*Mn_proba
+
+Where (w1 + w2 + w3 + … + wn) = 1.0
+
+For example, if you have a random forest model that gives very high AUC and a logistic regression model with a little lower AUC, you can combine them with 70% for random forest and 30% for logistic regression.
+
+Let’s say now we also have an xgboost model that gives an AUC higher than random forest. Now I will combine them with a ratio of 3:2:1 for xgboost : random forest : logistic regression
+
+**Note**: **You always create folds before starting with ensembling.**
+
+For simplicity, let’s say we divide the data into two parts: fold 1 and fold 2.
+
+Now, we train our random forest model, logistic regression model and our xgboost model on fold 1 and make predictions on fold 2. After this, we train the models from scratch on fold 2 and make predictions on fold 1.
+
+Thus, we have created predictions for all of the training data.
+
+Now to combine these models, we take fold 1 and all the predictions for fold 1 and create an optimization function that tries to find the best weights so as to minimize error or maximize AUC against the targets for fold 2.
+
+So, we are kind of training an optimization model on fold 1 with the predicted probabilities for the three models and evaluating it on fold 2.
+
+We see that average is better but using the **optimizer to find the threshold is even better!** Sometimes, the average is the best choice. As you can see, the coefficients do not add up to 1.0, but that’s okay as we are dealing with AUC and **AUC cares only about ranks**.
+
+**Bagging:**
+
+Random Forest is an Ensemble model. Random forest is just a combination of many **simple decision trees** (DTs). Random forest comes in a category of ensemble models which is popularly known as bagging.
+
+In bagging, we create **small subsets of data** and **train multiple simple models**. The final result is obtained by a **combination of predictions**, such as **average, of all such small models**.
+
+**Boosting:**
+
+XGboost model that we used is also an ensemble model. All gradient boosting models are ensemble models and come under the umbrella name: boosting.
+
+Boosting models work similar to bagging models, except for the fact that consecutive models in boosting are **trained on error residuals** and tend to **minimize the errors of preceding models**.
+
+This way, boosting models can learn the data perfectly and are thus **susceptible to overfitting**.
+
+**Stacking:**
+
+Let me describe the idea to you in simple points.
+
+- Divide the training data into folds.
+
+- Train a bunch of models: M1, M2…..Mn.
+
+- Create full training predictions (using **out of fold training** (**OOF**)) and test predictions using all these models.
+
+- Till here it is Level – 1 (L1).
+
+- Use the fold predictions from these models as features to another model. This is now a Level – 2 (L2) model.
+
+- Use the same folds as before to train this L2 model.
+
+- Now create OOF (out of fold) predictions on the training set and the test set.
+
+- Now you have L2 predictions for training data and also the final test set predictions.
+
+You **can keep repeating the L1 part** and can create as many levels as you want.
+
+**Blending**
+
+It is nothing but stacking with a holdout set instead of multiple folds.
+
+
+------------------------------------------------------------------------------- **The End** --------------------------------------------------------------------------------
